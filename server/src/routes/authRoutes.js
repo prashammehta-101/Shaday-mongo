@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { signup, login, me, verifyEmail, addAddress } from "../controllers/authController.js";
+import { requireAuth } from "../middleware/auth.js";
+const router = Router();
+router.post("/signup", signup);
+router.post("/login", login);
+router.get("/me", requireAuth, me);
+router.get("/verify-email", verifyEmail);
+router.post("/addresses", requireAuth, addAddress);
+export default router;

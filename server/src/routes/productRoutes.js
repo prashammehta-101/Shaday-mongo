@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { getProducts, getProductBySlug, createProduct, updateProduct, getSellerProducts } from "../controllers/productController.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
+const router = Router();
+router.get("/", getProducts);
+router.get("/seller", requireAuth, requireRole("SELLER", "ADMIN"), getSellerProducts);
+router.get("/:slug", getProductBySlug);
+router.post("/", requireAuth, requireRole("SELLER", "ADMIN"), createProduct);
+router.patch("/:id", requireAuth, requireRole("SELLER", "ADMIN"), updateProduct);
+export default router;
