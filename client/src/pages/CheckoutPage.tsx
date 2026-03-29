@@ -20,7 +20,8 @@ export const CheckoutPage = () => {
     api.get("/cart").then(({ data }) => setItems(data.items));
     if (user.addresses?.length) {
       const primary = user.addresses.find((a) => a.isPrimary) || user.addresses[0];
-      setSelectedAddressId(primary.id);
+      // FIX: use _id (MongoDB) with fallback to id
+      setSelectedAddressId(primary._id || primary.id);
     }
   }, [user]);
 
@@ -35,6 +36,7 @@ export const CheckoutPage = () => {
     try {
       const { data } = await api.post("/auth/addresses", addressForm);
       await refreshProfile();
+      // FIX: use _id with fallback to id
       setSelectedAddressId(data.address._id || data.address.id);
     } finally { setSaving(false); }
   };
@@ -45,6 +47,7 @@ export const CheckoutPage = () => {
       const addrId = selectedAddressId;
       if (!addrId) {
         alert("Please select or save a delivery address first.");
+        setPlacing(false);
         return;
       }
       await api.post("/orders", { addressId: addrId, notes: "Cash on Delivery" });
@@ -65,8 +68,16 @@ export const CheckoutPage = () => {
             <div className="font-medium text-white">Saved Addresses</div>
             <div className="mt-4 space-y-3">
               {(user.addresses || []).map((address: Address) => (
-                <label key={address.id} className="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-black/15 p-4 text-sm text-white/72 cursor-pointer">
-                  <input type="radio" checked={selectedAddressId === address.id} onChange={() => setSelectedAddressId(address.id)} />
+                // FIX: key and value both use _id with fallback to id
+                <label
+                  key={address._id || address.id}
+                  className="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-black/15 p-4 text-sm text-white/72 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    checked={selectedAddressId === (address._id || address.id)}
+                    onChange={() => setSelectedAddressId(address._id || address.id)}
+                  />
                   <span>{address.label}: {address.line1}, {address.city}, {address.state} - {address.postalCode}</span>
                 </label>
               ))}
